@@ -1,4 +1,4 @@
-<?
+<?php
 return array(
     //global
     'PARAMSWRONG' => '错误的参数',

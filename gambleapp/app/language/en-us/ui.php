@@ -1,4 +1,4 @@
-<?
+<?php
 return array(
     //global
     'PARAMSWRONG' => 'wrong parms!',

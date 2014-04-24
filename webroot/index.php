@@ -7,7 +7,7 @@
         var UID = <?php echo substr(time(),-5);?>;
         var SERVERIP = '127.0.0.1';
         var SERVERPORT = '8991';
-        var SOURCEURL = 'http://www.gamble.com/webroot/gambleflash/';
+        var SOURCEURL = 'http://local.game.swoole.com/gambleflash/';
     </script>
     <script type="text/javascript" src="./js/jquery.js"></script>
     <script type="text/javascript" src="./js/swfobject/swfobject.js"></script>
