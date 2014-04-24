@@ -32,23 +32,6 @@ class connection
         self::$serv = $serv;
     }
 
-    public static function sendOne_bak($fd, $cmd, $data)
-    {
-        if (empty(self::$serv) || empty($fd) || empty($cmd)) {
-            return;
-        }
-        $result = array(
-            'e_no' => -1,
-            'e_msg' => '',
-            'cmd' => $cmd,
-            'data' => $data,
-            '_fd' => $fd
-        );
-        //$data = json_encode(array($cmd, $data));
-        $data = json_encode($result);
-        return \swoole_server_send(self::$serv, $fd, $data);
-    }
-
     //use task
     public static function sendOne($fd, $cmd, $data)
     {
@@ -63,19 +46,10 @@ class connection
             '_fd' => $fd
         );
         $rs = json_encode($result);
-        self::$serv->task($rs);
-        Debug::info("send data:{$rs}\ncmd[{$cmd}] To fd[{$fd}] over with task process.\n");
-    }
-
-    public static function sendToChannel_bak($cmd, $data, $channel = 'ALL')
-    {
-        $list = self::getConnection()->getChannel($channel);
-        if (empty($list)) {
-            return;
-        }
-        foreach ($list as $fd) {
-            self::sendOne($fd, $cmd, $data);
-        }
+        //$serv->task($data, $taskid);
+        //如果你有两个task,那分别是0和1
+        self::$serv->task($rs, 0);
+        Debug::error("send data:{$rs}\ncmd[{$cmd}] To fd[{$fd}] over with task process.\n");
     }
 
     //user task
@@ -93,8 +67,38 @@ class connection
             'channel' => $channel
         );
         $rs = json_encode($sendData);
-        self::$serv->task($rs);
-        Debug::info("send data:{$rs}\ncmd[{$cmd}] To channel[{$channel}] over with task process.\n");
+        //$serv->task($data, $taskid);
+        //如果你有两个task,那分别是0和1
+        self::$serv->task($rs, 0);
+        Debug::error("send data:{$rs}\ncmd[{$cmd}] To channel[{$channel}] over with task process.\n");
+    }
+
+    public static function sendOne_bak($fd, $cmd, $data)
+    {
+        if (empty(self::$serv) || empty($fd) || empty($cmd)) {
+            return;
+        }
+        $result = array(
+            'e_no' => -1,
+            'e_msg' => '',
+            'cmd' => $cmd,
+            'data' => $data,
+            '_fd' => $fd
+        );
+        //$data = json_encode(array($cmd, $data));
+        $data = json_encode($result);
+        return \swoole_server_send(self::$serv, $fd, $data);
+    }
+
+    public static function sendToChannel_bak($cmd, $data, $channel = 'ALL')
+    {
+        $list = self::getConnection()->getChannel($channel);
+        if (empty($list)) {
+            return;
+        }
+        foreach ($list as $fd) {
+            self::sendOne($fd, $cmd, $data);
+        }
     }
 
     public static function connectionInfo($fd)

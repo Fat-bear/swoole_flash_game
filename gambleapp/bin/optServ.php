@@ -5,7 +5,7 @@ if (!defined('DS')) {
     define('DS', DIRECTORY_SEPARATOR);
 }
 
-$rootPath = dirname(__DIR__);
+$rootPath = (dirname(__DIR__));
 require dirname($rootPath) . '/ZPHP/ZPHP.php';
 ZPHP::setRootPath($rootPath);
 //:~

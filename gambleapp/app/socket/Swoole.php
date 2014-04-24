@@ -17,7 +17,7 @@ class Swoole implements ICallback
     {
         swoole_set_process_name("ansen: master process"); //master进程名称
         $port = ZConfig::getField('socket', 'port');
-        Debug::debug("server start port[{$port}] version " . SWOOLE_VERSION . "... \n");
+        Debug::debug("server master start port[{$port}] pid[" . posix_getpid() . "]version " . SWOOLE_VERSION . "... \n");
         $timerConfigs = ZConfig::getField('socket', 'times');
         $params = func_get_args();
 //        var_dump($timerConfigs);
@@ -80,10 +80,10 @@ class Swoole implements ICallback
 
         //todo remove. for flash
         if ('<policy' == substr($data, 0, 7)) {
-            \swoole_server_send($serv, $fd, "<cross-domain-policy>
+            \swoole_server_send($params[0], $params[1], "<cross-domain-policy>
                     <allow-access-from domain='*' to-ports='*' />
                     </cross-domain-policy>\0");
-            swoole_server_close($serv, $fd);
+            return;
         }
         //:~end
 
@@ -122,12 +122,28 @@ class Swoole implements ICallback
 
     private function sendAll($serv, $data, $channel = 'ALL')
     {
-        $list = common\connection::getConnection()->getChannel($channel);
-        if (empty($list)) {
-            return;
-        }
-        foreach ($list as $fd) {
-            $this->sendOne($serv, $fd, $data);
+        if ($channel == 'ALL') {
+            $start_fd = 0;
+            while (true) {
+                $conn_list = $serv->connection_list($start_fd, 10);
+                if ($conn_list === false) {
+                    break;
+                }
+                $start_fd = end($conn_list);
+                foreach ($conn_list as $conn) {
+                    //if ($conn === $fd) continue;
+                    $this->sendOne($serv, $conn, $data);
+                    //$serv->send($conn, "hello from $fd\n");
+                }
+            }
+        } else {
+            $list = common\connection::getConnection()->getChannel($channel);
+            if (empty($list)) {
+                return;
+            }
+            foreach ($list as $fd) {
+                $this->sendOne($serv, $fd, $data);
+            }
         }
     }
 
@@ -136,26 +152,25 @@ class Swoole implements ICallback
         if (empty($data)) {
             return;
         }
-
         $sendStr = $this->getDataEof($data);
-
         $parseD = json_decode($data, true);
+
         //send one
         if (isset($parseD['cmd']) && isset($parseD['_fd'])) {
             $this->sendOne($serv, $parseD['_fd'], $sendStr);
-            //$serv->finish("OK:send client.");
+            //$serv->finish("OK:send one client.");
         }
         //broadcast
         if (isset($parseD['broadcast']) && $parseD['broadcast'] === true) {
             $this->sendAll($serv, $sendStr, $parseD['channel']);
+            //$serv->finish("OK:send all client.");
         }
         Debug::info("task send data:{$sendStr}\n");
-
     }
 
-    function onFinish($serv, $data)
+    function onFinish($serv, $task_id, $data)
     {
-        Debug::info("AsyncTask Finish:Connect.PID=" . posix_getpid() . PHP_EOL);
+        Debug::error("AsyncTask Finish taskid:{$task_id} data:{$data}:Connect.PID=" . posix_getpid() . PHP_EOL);
     }
 
     public function onClose()
@@ -180,6 +195,7 @@ class Swoole implements ICallback
         $params = func_get_args();
         //$serv = $paramet_s[0];
         $interval = $params[1]; //ms
+
         switch ($interval) {
             case 1000: //rungame
                 $count = common\game::getRuncount();
@@ -207,20 +223,21 @@ class Swoole implements ICallback
 
     public function onWorkerStart()
     {
-        swoole_set_process_name("ansen: work process"); //worker进程名称
+        //swoole_set_process_name("ansen: work process"); //worker进程名称
 
         $params = func_get_args();
         $serv = $params[0];
         $worker_id = $params[1];
 
         //new version support
-//        if($worker_id >= $serv->setting['worker_num']) {
-//            swoole_set_process_name("ansen: task process");    //task name
-//        } else {
-//            swoole_set_process_name("ansen: work process"); //worker name
-//        }
+        if ($worker_id >= $serv->setting['worker_num']) {
+            swoole_set_process_name("ansen: task process"); //task name
+            Debug::debug("TaskerStart[$worker_id]|pid=" . posix_getpid() . ".\n");
+        } else {
+            swoole_set_process_name("ansen: work process"); //worker name
+            Debug::debug("WorkerStart[$worker_id]|pid=" . posix_getpid() . ".\n");
+        }
         common\connection::setServer($serv); //把serv加入到connection中
-        Debug::debug("WorkerStart[$worker_id]|pid=" . posix_getpid() . ".\n");
     }
 
     public function onWorkerStop()

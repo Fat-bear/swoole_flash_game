@@ -8,5 +8,6 @@
             'dbname' => 'gamble',
             'charset' => 'UTF8',
             'pconnect'=>true,
+            'ping' => true,
         )
     );
