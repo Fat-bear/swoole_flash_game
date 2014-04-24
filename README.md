@@ -10,8 +10,9 @@ swoole_flash_game
 pecl install swoole
 ```
 
+ZPHP代码使用半桶水提供的代码库(注:为适应此游戏代码结构有小部分修改,具体自己可以进行对比比较)
 ZPHP框架: <https://github.com/shenzhe/zphp>
-将框架的ZPHP目录放到当前目录下。
+
 
 运行
 -----
@@ -24,4 +25,4 @@ ZPHP框架: <https://github.com/shenzhe/zphp>
 7. 启动gambleapp/bin/server.php
 8. 打开网站首页
 
-目前环境(php5.4.2+mysql5+redis2.6.14+swoole1.6.10)
+目前环境(php5.4.2+mysql5+redis2.6.14+swoole1.6.10)兼容最新swoole版本!
