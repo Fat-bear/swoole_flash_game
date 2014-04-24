@@ -1,0 +1,6 @@
+{
+    "require": {
+        "zphp/zphp": "dev-master",
+        "matyhtf/swoole_framework": "dev-master"
+    }
+}
