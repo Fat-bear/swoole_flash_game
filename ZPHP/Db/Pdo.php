@@ -16,7 +16,12 @@ class Pdo
 
     public function __construct($config, $className = null, $dbName = null)
     {
-        $this->config = $config;
+        if (empty($this->pdo)) {
+            $this->config = $config;
+            $this->pdo = $this->connect();
+        } elseif (!empty($config['ping'])) {
+            $this->ping();
+        }
         if (!empty($className)) {
             $this->className = $className;
         }
@@ -24,16 +29,6 @@ class Pdo
             $this->dbName = $config['dbname'];
         } else {
             $this->dbName = $dbName;
-        }
-        $this->checkPing();
-    }
-
-    public function checkPing()
-    {
-        if (empty($this->pdo)) {
-            $this->pdo = $this->connect();
-        } elseif (!empty($this->config['ping'])) {
-            $this->ping();
         }
     }
 
@@ -60,10 +55,11 @@ class Pdo
         }
         $this->dbName = $dbName;
     }
+
     //add set TableName change by ahuo 2013-11-05 14:23
     public function setTableName($tableName)
     {
-        if(empty($tableName)){
+        if (empty($tableName)) {
             return;
         }
         $this->tableName = $tableName;
@@ -221,22 +217,6 @@ class Pdo
         return $statement->fetchAll();
     }
 
-    //ansen
-    public function fetchOne($where = '1', $params = null, $fields = '*', $orderBy = null)
-    {
-        $query = "SELECT {$fields} FROM {$this->getLibName()} WHERE {$where}";
-
-        if ($orderBy) {
-            $query .= " order by {$orderBy}";
-        }
-
-        $query .= " limit 1";
-        $statement = $this->pdo->prepare($query);
-        $statement->execute($params);
-        $statement->setFetchMode(\PDO::FETCH_ASSOC);
-        return $statement->fetch();
-    }
-
     public function fetchCol($where = '1', $params = null, $fields = '*', $orderBy = null, $limit = null)
     {
         $results = $this->fetchArray($where, $params, $fields, $orderBy, $limit);
@@ -260,7 +240,8 @@ class Pdo
             throw new \Exception('data base error');
         }
 
-        $statement->setFetchMode(\PDO::FETCH_CLASS, $this->className);
+        $statement->setFetchMode(\PDO::FETCH_ASSOC);
+//        $statement->setFetchMode(\PDO::FETCH_CLASS, $this->className);
         return $statement->fetchAll();
     }
 
@@ -275,7 +256,8 @@ class Pdo
         $query .= " limit 1";
         $statement = $this->pdo->prepare($query);
         $statement->execute($params);
-        $statement->setFetchMode(\PDO::FETCH_CLASS, $this->className);
+        $statement->setFetchMode(\PDO::FETCH_ASSOC);
+//        $statement->setFetchMode(\PDO::FETCH_CLASS, $this->className);
         return $statement->fetch();
     }
 
@@ -287,6 +269,7 @@ class Pdo
         $result = $statement->fetch();
         return $result["count"];
     }
+
     //$params = [] php5.3.6 报语法错误 change by ahuo 2013-11-05 14:23
     public function remove($where, $params = array())
     {
@@ -323,34 +306,17 @@ class Pdo
         return $statement->fetch();
     }
 
-    public function execBySql($sql)
-    {
-        $statement = $this->pdo->prepare($sql);
-        return $statement->execute();
-    }
 
     public function ping()
     {
-        if(empty($this->pdo)) {
+        if (empty($this->pdo)) {
             $this->pdo = $this->connect();
         } else {
-            try {
-                $status = $this->pdo->getAttribute(\PDO::ATTR_SERVER_INFO);
-            } catch (\Exception $e) {
-                if ($e->getCode() == 'HY000') {
-                    $this->pdo = $this->connect();
-                } else {
-                    throw $e;
-                }
+            $status = $this->pdo->getAttribute(\PDO::ATTR_SERVER_INFO);
+            if ('MySQL server has gone away' === $status) {
+                $this->pdo = $this->connect();
             }
         }
         return $this->pdo;
-    }
-
-    public function close()
-    {
-        if(empty($this->config['pconnect'])) {
-            $this->pdo = null;
-        }
     }
 }

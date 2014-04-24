@@ -1,5 +1,4 @@
 <?php
-require __DIR__.'/../../vendor/autoload.php';
 use ZPHP\ZPHP;
 
 if (!defined('DS')) {
@@ -7,6 +6,7 @@ if (!defined('DS')) {
 }
 
 $rootPath = (dirname(__DIR__));
+require dirname($rootPath) . '/ZPHP/ZPHP.php';
 ZPHP::setRootPath($rootPath);
 //:~
 
