@@ -27,3 +27,4 @@ ZPHP框架: <https://github.com/shenzhe/zphp>
 9. 打开网站首页
 
 目前环境(php5.4.2+mysql5+redis2.6.14+swoole1.6.10)兼容最新swoole版本!
+注: flash客户端还不完善仅此为demo.
