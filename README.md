@@ -1,7 +1,7 @@
 swoole_flash_game
 =================
 
-基于swoole扩展和zphp框架开发的flash游戏
+基于swoole扩展开发的flash游戏
 
 ![游戏截图](screenshot.jpg)
 
