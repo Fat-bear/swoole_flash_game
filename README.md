@@ -10,10 +10,6 @@ swoole_flash_game
 pecl install swoole
 ```
 
-ZPHP代码使用半桶水提供的代码库(注:为适应此游戏代码结构有小部分修改,具体自己可以进行对比比较)
-ZPHP框架: <https://github.com/shenzhe/zphp>
-
-
 运行
 -----
 1. 设置域名指向webroot目录
